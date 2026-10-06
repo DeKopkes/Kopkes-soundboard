@@ -1,0 +1,562 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111318">
+<title>Soundboard De Köpkes 2.2 TEST</title>
+
+<style>
+:root{
+ --bg:#111318;--panel:#20242e;--panel2:#292e3a;
+ --text:#f5f5f7;--muted:#aeb3bf;--gold:#f2d36f;
+ --red:#57242b;--line:#3a404d;--green:#75d6a5
+}
+*{box-sizing:border-box}
+body{
+ margin:0;background:var(--bg);color:var(--text);
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+}
+button,input{font:inherit}
+button{touch-action:manipulation}
+
+header{
+ padding:14px 14px 12px;
+ border-bottom:1px solid var(--line)
+}
+.headrow{
+ display:flex;align-items:center;justify-content:space-between;gap:10px
+}
+h1{margin:0;font-size:22px}
+.gold{color:var(--gold)}
+.version{font-size:11px;color:var(--muted)}
+
+.mode{
+ min-height:44px;padding:0 14px;border-radius:12px;
+ border:1px solid #505765;background:var(--panel2);
+ color:#fff;font-weight:850
+}
+.mode.show{
+ background:var(--gold);color:#111;border-color:var(--gold)
+}
+
+.manage{
+ padding:12px 14px;border-bottom:1px solid var(--line)
+}
+.manageTop{
+ display:grid;grid-template-columns:1fr 1fr;gap:9px
+}
+.add{
+ grid-column:1/-1;background:var(--gold);color:#111;border:0;
+ border-radius:14px;min-height:55px;font-weight:850;font-size:18px
+}
+.small{
+ background:var(--panel2);color:#fff;
+ border:1px solid #464d5a;border-radius:12px;
+ min-height:47px;font-weight:750
+}
+
+.master{
+ padding:9px 14px;
+ display:grid;grid-template-columns:auto 1fr auto;
+ gap:9px;align-items:center;border-bottom:1px solid var(--line);
+ font-size:14px
+}
+.master input{width:100%}
+
+main{padding:12px 12px 115px}
+
+.next{
+ background:#171a21;border:1px solid var(--line);
+ border-radius:14px;padding:9px 12px;margin-bottom:10px
+}
+.nextLabel{
+ color:var(--gold);font-size:10px;font-weight:900;letter-spacing:1.2px
+}
+.nextName{
+ margin-top:2px;font-size:18px;font-weight:900;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+
+.pads{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px
+}
+.padWrap{position:relative}
+.pad{
+ width:100%;min-height:116px;
+ border-radius:15px;border:2px solid transparent;
+ background:var(--panel);color:var(--text);
+ padding:13px 11px 10px;text-align:left;
+ display:flex;flex-direction:column;justify-content:space-between
+}
+.pad.selected{
+ border-color:var(--gold);
+ box-shadow:0 0 0 2px #f2d36f20
+}
+.pad.playing{
+ border-color:var(--green);
+ box-shadow:0 0 0 2px #75d6a520
+}
+.padTitle{
+ padding-right:31px;font-size:17px;font-weight:900;
+ line-height:1.1;word-break:break-word
+}
+.padMeta{font-size:11px;color:var(--muted);margin-top:9px}
+.playingText{color:var(--green);font-weight:900}
+.nextText{color:var(--gold);font-weight:900}
+
+.gear{
+ position:absolute;right:6px;top:6px;width:34px;height:34px;
+ border-radius:10px;border:1px solid #4a5160;
+ background:#171a21;color:#fff;font-size:16px;z-index:3
+}
+
+.empty{
+ grid-column:1/-1;text-align:center;padding:30px 15px;
+ border:1px dashed #4b5260;border-radius:16px;color:var(--muted)
+}
+
+.dock{
+ position:fixed;z-index:20;left:0;right:0;bottom:0;
+ background:#171a21f2;backdrop-filter:blur(12px);
+ border-top:1px solid var(--line);
+ padding:9px 10px calc(9px + env(safe-area-inset-bottom));
+ display:grid;grid-template-columns:.75fr .75fr 1.5fr;gap:8px
+}
+.dock button{
+ min-height:62px;border-radius:14px;border:1px solid #454c59;
+ background:var(--panel2);color:#fff;font-weight:900;font-size:15px
+}
+.dock .stop{
+ background:var(--red);color:#ffbdc5;border-color:#b95160
+}
+.dock .go{
+ background:var(--gold);color:#111;border-color:var(--gold);
+ font-size:22px
+}
+
+/* SHOWMODUS */
+body.showMode header{padding:10px 12px}
+body.showMode h1{font-size:18px}
+body.showMode .manage{display:none}
+body.showMode .master{padding:7px 12px}
+body.showMode main{padding-top:9px}
+body.showMode .next{padding:8px 10px;margin-bottom:8px}
+body.showMode .pad{min-height:108px}
+body.showMode .gear{display:none}
+body.showMode .padTitle{padding-right:0;font-size:17px}
+
+dialog{
+ width:min(92vw,460px);border:1px solid #4a5160;
+ border-radius:18px;background:var(--panel);color:#fff;padding:19px
+}
+dialog::backdrop{background:#000a}
+dialog h2{margin:0 0 12px}
+dialog label.caption{
+ display:block;color:var(--muted);font-size:12px;margin:11px 0 5px
+}
+dialog input[type=text]{
+ width:100%;padding:12px;border-radius:10px;
+ border:1px solid #555d6c;background:#111318;color:#fff
+}
+.check{display:flex;align-items:center;gap:10px;margin-top:14px}
+.check input{width:22px;height:22px}
+
+.order{
+ display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px
+}
+.order button{
+ min-height:45px;border-radius:10px;border:1px solid #4a5160;
+ background:#303643;color:#fff;font-weight:800
+}
+
+.dialogButtons{
+ display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:17px
+}
+.dialogButtons button{
+ min-height:47px;border:0;border-radius:11px;font-weight:850
+}
+.cancelEdit{background:#343a47;color:#fff}
+.saveEdit{background:var(--gold);color:#111}
+
+@media(min-width:760px){
+ .pads{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .pad{min-height:135px}
+ .padTitle{font-size:20px}
+}
+@media(min-width:1100px){
+ .pads{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+ <div class="headrow">
+  <h1>Soundboard <span class="gold">De Köpkes</span>
+   <span class="version">2.2 TEST</span>
+  </h1>
+  <button class="mode" id="modeBtn">▶ SHOW</button>
+ </div>
+</header>
+
+<section class="manage">
+ <div class="manageTop">
+  <button class="add" id="add">＋ Geluiden toevoegen</button>
+  <button class="small" id="save">Set opslaan</button>
+  <button class="small" id="clear">Board leegmaken</button>
+ </div>
+ <input id="files" type="file" multiple hidden>
+</section>
+
+<section class="master">
+ <span>Master</span>
+ <input id="master" type="range" min="0" max="1" step=".01" value=".8">
+ <strong id="masterPct">80%</strong>
+</section>
+
+<main>
+ <div class="next">
+  <div class="nextLabel">VOLGENDE CUE</div>
+  <div class="nextName" id="nextName">Geen volgende cue</div>
+ </div>
+
+ <div class="pads" id="pads">
+  <div class="empty">Voeg geluiden toe in BEHEER.</div>
+ </div>
+</main>
+
+<div class="dock">
+ <button id="pause">⏸ PAUZE</button>
+ <button class="stop" id="stop">■ STOP</button>
+ <button class="go" id="go">▶ GO</button>
+</div>
+
+<dialog id="settings">
+ <h2>⚙️ Pad beheren</h2>
+
+ <label class="caption">Naam op de knop</label>
+ <input id="editName" type="text">
+
+ <label class="check">
+  <input id="allowOverlap" type="checkbox">
+  <span>Mag tegelijk met ander geluid spelen</span>
+ </label>
+
+ <div class="order">
+  <button id="moveUp">↑ Eerder</button>
+  <button id="moveDown">↓ Later</button>
+ </div>
+
+ <div class="dialogButtons">
+  <button class="cancelEdit" id="cancelEdit">Annuleren</button>
+  <button class="saveEdit" id="saveEdit">Opslaan</button>
+ </div>
+</dialog>
+
+<script>
+const $=s=>document.querySelector(s);
+
+let items=[];
+let selected=-1;
+let editing=-1;
+let showMode=false;
+
+const pads=$('#pads');
+const master=$('#master');
+
+function cleanName(name){
+ let n=name.replace(/\.[^.]+$/,'');
+ n=n.replace(/^De Kopkes[-_ ]*/i,'');
+ n=n.replace(/\s+NL[-_ ]?[A-Z0-9]+$/i,'');
+ n=n.replace(/\s+[A-Z]{1,3}[-_]?[A-Z0-9]{7,}$/i,'');
+ n=n.replace(/[-_]+/g,' ');
+ n=n.replace(/\s+/g,' ').trim();
+ return n||name;
+}
+
+function fmt(sec){
+ if(!isFinite(sec))return '—';
+ sec=Math.max(0,Math.round(sec));
+ return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
+}
+
+function playingItems(){
+ return items.filter(x=>!x.audio.paused&&!x.audio.ended);
+}
+
+function render(){
+ $('#nextName').textContent=
+  selected>=0&&items[selected]
+   ?items[selected].name
+   :'Geen volgende cue';
+
+ pads.innerHTML='';
+
+ if(!items.length){
+  pads.innerHTML='<div class="empty">Voeg geluiden toe in BEHEER.</div>';
+  return;
+ }
+
+ items.forEach((x,i)=>{
+  const wrap=document.createElement('div');
+  wrap.className='padWrap';
+
+  const b=document.createElement('button');
+  const playing=!x.audio.paused&&!x.audio.ended;
+
+  b.className=
+   'pad'+
+   (i===selected?' selected':'')+
+   (playing?' playing':'');
+
+  let state='GEREED';
+  let cls='';
+
+  if(playing){
+   state='● SPEELT';
+   cls='playingText';
+  }else if(i===selected){
+   state='VOLGENDE';
+   cls='nextText';
+  }
+
+  b.innerHTML=
+   '<span class="padTitle">'+x.name+'</span>'+
+   '<span class="padMeta"><span class="'+cls+'">'+state+'</span>'+
+   ' · '+(x.duration?fmt(x.duration):'laden…')+'</span>';
+
+  b.onclick=()=>{
+   selected=i;
+   render();
+  };
+
+  wrap.appendChild(b);
+
+  if(!showMode){
+   const gear=document.createElement('button');
+   gear.className='gear';
+   gear.textContent='⚙️';
+   gear.onclick=e=>{
+    e.stopPropagation();
+    openSettings(i);
+   };
+   wrap.appendChild(gear);
+  }
+
+  pads.appendChild(wrap);
+ });
+}
+
+function openSettings(i){
+ editing=i;
+ $('#editName').value=items[i].name;
+ $('#allowOverlap').checked=items[i].overlap;
+ $('#settings').showModal();
+}
+
+function closeSettings(){
+ $('#settings').close();
+ editing=-1;
+}
+
+$('#cancelEdit').onclick=closeSettings;
+
+$('#saveEdit').onclick=()=>{
+ if(editing<0)return;
+
+ items[editing].name=
+  $('#editName').value.trim()||items[editing].name;
+
+ items[editing].overlap=$('#allowOverlap').checked;
+
+ $('#settings').close();
+ editing=-1;
+ render();
+};
+
+$('#moveUp').onclick=()=>{
+ if(editing<=0)return;
+
+ const old=editing;
+ [items[old-1],items[old]]=[items[old],items[old-1]];
+ editing=old-1;
+
+ if(selected===old)selected=old-1;
+ else if(selected===old-1)selected=old;
+
+ render();
+};
+
+$('#moveDown').onclick=()=>{
+ if(editing<0||editing>=items.length-1)return;
+
+ const old=editing;
+ [items[old+1],items[old]]=[items[old],items[old+1]];
+ editing=old+1;
+
+ if(selected===old)selected=old+1;
+ else if(selected===old+1)selected=old;
+
+ render();
+};
+
+$('#modeBtn').onclick=()=>{
+ showMode=!showMode;
+ document.body.classList.toggle('showMode',showMode);
+
+ $('#modeBtn').textContent=
+  showMode?'⚙️ BEHEER':'▶ SHOW';
+
+ $('#modeBtn').classList.toggle('show',showMode);
+
+ render();
+};
+
+$('#add').onclick=()=>$('#files').click();
+
+$('#files').onchange=e=>{
+ [...e.target.files].forEach(f=>{
+  const url=URL.createObjectURL(f);
+  const a=new Audio(url);
+
+  a.preload='metadata';
+  a.volume=+master.value;
+
+  const x={
+   name:cleanName(f.name),
+   audio:a,
+   duration:0,
+   overlap:false
+  };
+
+  a.onloadedmetadata=()=>{
+   x.duration=a.duration;
+   render();
+  };
+
+  a.onerror=()=>{
+   alert('Safari kan dit bestand niet als audio afspelen: '+f.name);
+  };
+
+  a.onplay=render;
+  a.onpause=render;
+  a.onended=render;
+
+  items.push(x);
+ });
+
+ if(selected<0&&items.length)selected=0;
+
+ render();
+ e.target.value='';
+};
+
+master.oninput=()=>{
+ $('#masterPct').textContent=
+  Math.round(master.value*100)+'%';
+
+ items.forEach(x=>{
+  x.audio.volume=+master.value;
+ });
+};
+
+$('#go').onclick=async()=>{
+ if(selected<0||!items[selected])return;
+
+ const x=items[selected];
+
+ if(!x.overlap){
+  items.forEach(other=>{
+   if(other!==x&&!other.audio.paused){
+    other.audio.pause();
+    try{other.audio.currentTime=0}catch(e){}
+   }
+  });
+ }
+
+ try{
+  x.audio.volume=+master.value;
+  x.audio.currentTime=0;
+  await x.audio.play();
+ }catch(e){
+  alert('Dit geluid kon niet gestart worden.');
+ }
+
+ if(selected<items.length-1)selected++;
+
+ render();
+};
+
+$('#pause').onclick=()=>{
+ const playing=playingItems();
+
+ if(playing.length){
+  playing.forEach(x=>x.audio.pause());
+ }else{
+  items.forEach(x=>{
+   if(
+    x.audio.currentTime>0 &&
+    isFinite(x.audio.duration) &&
+    x.audio.currentTime<x.audio.duration
+   ){
+    x.audio.volume=+master.value;
+    x.audio.play();
+   }
+  });
+ }
+
+ render();
+};
+
+$('#stop').onclick=()=>{
+ items.forEach(x=>{
+  x.audio.pause();
+  try{x.audio.currentTime=0}catch(e){}
+ });
+ render();
+};
+
+$('#clear').onclick=()=>{
+ if(confirm('Het hele TEST-board leegmaken?')){
+  items.forEach(x=>{
+   x.audio.pause();
+   try{URL.revokeObjectURL(x.audio.src)}catch(e){}
+  });
+
+  items=[];
+  selected=-1;
+  render();
+ }
+};
+
+$('#save').onclick=()=>{
+ alert('Set-opslag bouwen we in zodra de 2.2-bediening definitief bevalt.');
+};
+
+document.addEventListener('keydown',e=>{
+ if(e.code==='Space'){
+  e.preventDefault();
+  $('#go').click();
+ }
+
+ if(e.key==='Escape'){
+  $('#stop').click();
+ }
+
+ if(e.key==='ArrowRight'&&items.length){
+  selected=Math.min(items.length-1,selected+1);
+  render();
+ }
+
+ if(e.key==='ArrowLeft'&&items.length){
+  selected=Math.max(0,selected-1);
+  render();
+ }
+});
+
+render();
+</script>
+</body>
+</html>
