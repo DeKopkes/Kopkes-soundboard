@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111318">
+<title>Soundboard De Köpkes 2.3 TEST</title>
+
+<style>
+:root{
+--bg:#111318;--panel:#20242e;--panel2:#292e3a;
+--text:#f5f5f7;--muted:#aeb3bf;--gold:#f2d36f;
+--red:#6b252e;--line:#3a404d;--green:#75d6a5
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input{font:inherit}
+button{touch-action:manipulation}
+
+header{padding:14px;border-bottom:1px solid var(--line)}
+.head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+h1{margin:0;font-size:22px}
+.gold{color:var(--gold)}
+.ver{font-size:11px;color:var(--muted)}
+
+.mode{
+min-height:44px;padding:0 14px;border-radius:12px;
+border:1px solid #505765;background:var(--panel2);
+color:#fff;font-weight:850
+}
+.mode.show{background:var(--gold);color:#111}
+
+.manage{padding:12px 14px;border-bottom:1px solid var(--line)}
+.managegrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.add{
+grid-column:1/-1;background:var(--gold);color:#111;border:0;
+border-radius:14px;min-height:55px;font-weight:850;font-size:18px
+}
+.small{
+background:var(--panel2);color:#fff;border:1px solid #464d5a;
+border-radius:12px;min-height:47px;font-weight:750
+}
+
+.master{
+padding:9px 14px;display:grid;grid-template-columns:auto 1fr auto;
+gap:9px;align-items:center;border-bottom:1px solid var(--line);font-size:14px
+}
+.master input{width:100%}
+
+main{padding:12px 12px 115px}
+.next{
+background:#171a21;border:1px solid var(--line);
+border-radius:14px;padding:9px 12px;margin-bottom:10px
+}
+.nextlabel{
+color:var(--gold);font-size:10px;font-weight:900;letter-spacing:1.2px
+}
+.nextname{
+font-size:18px;font-weight:900;white-space:nowrap;
+overflow:hidden;text-overflow:ellipsis
+}
+
+.pads{
+display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px
+}
+.wrap{position:relative}
+.pad{
+width:100%;min-height:116px;border-radius:15px;
+border:2px solid transparent;background:var(--panel);color:var(--text);
+padding:13px 11px 10px;text-align:left;
+display:flex;flex-direction:column;justify-content:space-between
+}
+.pad.sel{border-color:var(--gold)}
+.pad.play{border-color:var(--green)}
+.title{
+padding-right:31px;font-size:17px;font-weight:900;
+line-height:1.1;word-break:break-word
+}
+.meta{font-size:11px;color:var(--muted);margin-top:9px}
+.playing{color:var(--green);font-weight:900}
+.nexttxt{color:var(--gold);font-weight:900}
+
+.gear{
+position:absolute;right:6px;top:6px;width:34px;height:34px;
+border-radius:10px;border:1px solid #4a5160;
+background:#171a21;color:#fff;z-index:3
+}
+.empty{
+grid-column:1/-1;text-align:center;padding:30px 15px;
+border:1px dashed #4b5260;border-radius:16px;color:var(--muted)
+}
+
+.dock{
+position:fixed;z-index:20;left:0;right:0;bottom:0;
+background:#171a21f2;border-top:1px solid var(--line);
+padding:9px 10px calc(9px + env(safe-area-inset-bottom));
+display:grid;grid-template-columns:.65fr 1fr 1.45fr;gap:8px
+}
+.dock button{
+min-height:62px;border-radius:14px;border:1px solid #454c59;
+background:var(--panel2);color:#fff;font-weight:900
+}
+.dock .stop{
+background:var(--red);color:#ffd1d6;border-color:#c35a67;font-size:17px
+}
+.dock .go{
+background:var(--gold);color:#111;border-color:var(--gold);font-size:22px
+}
+
+body.show .manage{display:none}
+body.show .gear{display:none}
+body.show header{padding:10px 12px}
+body.show h1{font-size:18px}
+body.show .master{padding:7px 12px}
+body.show main{padding-top:9px}
+body.show .pad{min-height:108px}
+
+dialog{
+width:min(92vw,460px);border:1px solid #4a5160;
+border-radius:18px;background:var(--panel);color:#fff;padding:19px
+}
+dialog::backdrop{background:#000a}
+dialog input[type=text]{
+width:100%;padding:12px;border-radius:10px;
+border:1px solid #555d6c;background:#111318;color:#fff
+}
+.check{display:flex;gap:10px;align-items:center;margin:14px 0}
+.order,.actions{
+display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px
+}
+.order button,.actions button{
+min-height:46px;border-radius:10px;border:1px solid #4a5160;
+background:#303643;color:#fff;font-weight:800
+}
+.actions .save{background:var(--gold);color:#111}
+.toast{
+position:fixed;z-index:50;left:50%;transform:translateX(-50%);
+bottom:95px;background:#111;border:1px solid #555;
+border-radius:999px;padding:9px 14px;display:none;white-space:nowrap
+}
+
+@media(min-width:760px){
+.pads{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(min-width:1100px){
+.pads{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="head">
+<h1>Soundboard <span class="gold">De Köpkes</span>
+<span class="ver">2.3 TEST</span></h1>
+<button id="mode" class="mode">▶ SHOW</button>
+</div>
+</header>
+
+<section class="manage">
+<div class="managegrid">
+<button id="add" class="add">＋ Geluiden toevoegen</button>
+<button id="save" class="small">💾 Set bewaren</button>
+<button id="clear" class="small">Board leegmaken</button>
+</div>
+<input id="files" type="file" multiple hidden>
+</section>
+
+<section class="master">
+<span>Master</span>
+<input id="master" type="range" min="0" max="1" step=".01" value=".8">
+<strong id="pct">80%</strong>
+</section>
+
+<main>
+<div class="next">
+<div class="nextlabel">VOLGENDE CUE</div>
+<div id="next" class="nextname">Geen volgende cue</div>
+</div>
+<div id="pads" class="pads"></div>
+</main>
+
+<div class="dock">
+<button id="pause">⏸ PAUZE</button>
+<button id="stop" class="stop">■ STOP</button>
+<button id="go" class="go">▶ GO</button>
+</div>
+
+<dialog id="dlg">
+<h2>⚙️ Pad beheren</h2>
+<p>Naam op de knop</p>
+<input id="ename" type="text">
+
+<label class="check">
+<input id="overlap" type="checkbox"> Mag tegelijk spelen
+</label>
+
+<div class="order">
+<button id="up">↑ Eerder</button>
+<button id="down">↓ Later</button>
+</div>
+
+<div class="actions">
+<button id="cancel">Annuleren</button>
+<button id="apply" class="save">Opslaan</button>
+</div>
+</dialog>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+
+let items=[];
+let selected=-1;
+let editing=-1;
+let show=false;
+let timer=null;
+
+const DB='kopkes23';
+const ST='tracks';
+const master=$('#master');
+
+const openDB=()=>new Promise((ok,no)=>{
+ let r=indexedDB.open(DB,1);
+
+ r.onupgradeneeded=()=>{
+  if(!r.result.objectStoreNames.contains(ST)){
+   r.result.createObjectStore(ST,{
+    keyPath:'id',
+    autoIncrement:true
+   });
+  }
+ };
+
+ r.onsuccess=()=>ok(r.result);
+ r.onerror=()=>no(r.error);
+});
+
+async function all(){
+ let d=await openDB();
+
+ return new Promise((ok,no)=>{
+  let r=d.transaction(ST).objectStore(ST).getAll();
+  r.onsuccess=()=>ok(r.result);
+  r.onerror=()=>no(r.error);
+ });
+}
+
+async function clearDB(){
+ let d=await openDB();
+
+ return new Promise((ok,no)=>{
+  let r=d.transaction(ST,'readwrite').objectStore(ST).clear();
+  r.onsuccess=ok;
+  r.onerror=()=>no(r.error);
+ });
+}
+
+async function put(v){
+ let d=await openDB();
+
+ return new Promise((ok,no)=>{
+  let r=d.transaction(ST,'readwrite').objectStore(ST).add(v);
+  r.onsuccess=ok;
+  r.onerror=()=>no(r.error);
+ });
+}
+
+function num(n){
+ let m=n.match(/^\s*(\d{1,3})(?:[\s._-]|$)/);
+ return m?+m[1]:999999;
+}
+
+function name(n){
+ return n.replace(/\.[^.]+$/,'').trim();
+}
+
+function fmt(s){
+ if(!isFinite(s))return '—';
+
+ s=Math.max(0,Math.round(s));
+
+ return Math.floor(s/60)+':'+
+  String(s%60).padStart(2,'0');
+}
+
+function esc(s){
+ return s.replace(/[&<>"']/g,c=>({
+  '&':'&amp;',
+  '<':'&lt;',
+  '>':'&gt;',
+  '"':'&quot;',
+  "'":'&#39;'
+ }[c]));
+}
+
+function make(r){
+ let a=new Audio(URL.createObjectURL(r.blob));
+
+ a.preload='metadata';
+ a.volume=+master.value;
+
+ let x={
+  name:r.name,
+  original:r.original,
+  blob:r.blob,
+  overlap:!!r.overlap,
+  duration:r.duration||0,
+  audio:a
+ };
+
+ a.onloadedmetadata=()=>{
+  x.duration=a.duration;
+  render();
+ };
+
+ a.onplay=start;
+
+ a.onpause=()=>{
+  stopTimer();
+  render();
+ };
+
+ a.onended=()=>{
+  stopTimer();
+  render();
+ };
+
+ return x;
+}
+
+function sort(){
+ items.sort((a,b)=>num(a.original)-num(b.original));
+}
+
+function start(){
+ stopTimer();
+ timer=setInterval(render,500);
+ render();
+}
+
+function stopTimer(){
+ if(timer){
+  clearInterval(timer);
+  timer=null;
+ }
+}
+
+function render(){
+ let p=$('#pads');
+
+ $('#next').textContent=
+  selected>=0&&items[selected]
+   ?items[selected].name
+   :'Geen volgende cue';
+
+ p.innerHTML='';
+
+ if(!items.length){
+  p.innerHTML=
+   '<div class="empty">Voeg geluiden toe in BEHEER.</div>';
+  return;
+ }
+
+ items.forEach((x,i)=>{
+  let w=document.createElement('div');
+  w.className='wrap';
+
+  let b=document.createElement('button');
+
+  let playing=
+   !x.audio.paused&&!x.audio.ended;
+
+  b.className=
+   'pad'+
+   (i===selected?' sel':'')+
+   (playing?' play':'');
+
+  let st='GEREED';
+  let cl='';
+  let tm=x.duration?fmt(x.duration):'laden…';
+
+  if(playing){
+   st='● SPEELT';
+   cl='playing';
+
+   tm='nog '+
+    fmt(x.audio.duration-x.audio.currentTime);
+  }
+  else if(i===selected){
+   st='VOLGENDE';
+   cl='nexttxt';
+  }
+
+  b.innerHTML=
+   '<span class="title">'+esc(x.name)+'</span>'+
+   '<span class="meta">'+
+   '<span class="'+cl+'">'+st+'</span>'+
+   ' · '+tm+
+   '</span>';
+
+  b.onclick=()=>{
+   selected=i;
+   render();
+  };
+
+  w.appendChild(b);
+
+  if(!show){
+   let g=document.createElement('button');
+
+   g.className='gear';
+   g.textContent='⚙️';
+
+   g.onclick=e=>{
+    e.stopPropagation();
+
+    editing=i;
+    $('#ename').value=x.name;
+    $('#overlap').checked=x.overlap;
+    $('#dlg').showModal();
+   };
+
+   w.appendChild(g);
+  }
+
+  p.appendChild(w);
+ });
+}
+
+function toast(s){
+ let t=$('#toast');
+
+ t.textContent=s;
+ t.style.display='block';
+
+ setTimeout(()=>{
+  t.style.display='none';
+ },1800);
+}
+
+$('#mode').onclick=()=>{
+ show=!show;
+
+ document.body.classList.toggle('show',show);
+
+ $('#mode').textContent=
+  show?'⚙️ BEHEER':'▶ SHOW';
+
+ $('#mode').classList.toggle('show',show);
+
+ render();
+};
+
+$('#add').onclick=()=>$('#files').click();
+
+$('#files').onchange=e=>{
+
+ [...e.target.files]
+ .sort((a,b)=>num(a.name)-num(b.name))
+ .forEach(f=>{
+
+  items.push(
+   make({
+    name:name(f.name),
+    original:f.name,
+    blob:f,
+    overlap:false,
+    duration:0
+   })
+  );
+
+ });
+
+ sort();
+
+ if(selected<0&&items.length){
+  selected=0;
+ }
+
+ render();
+ e.target.value='';
+};
+
+master.oninput=()=>{
+
+ $('#pct').textContent=
+  Math.round(master.value*100)+'%';
+
+ items.forEach(x=>{
+  x.audio.volume=+master.value;
+ });
+};
+
+$('#go').onclick=async()=>{
+
+ if(selected<0)return;
+
+ let x=items[selected];
+
+ if(!x.overlap){
+  items.forEach(o=>{
+   if(o!==x&&!o.audio.paused){
+    o.audio.pause();
+
+    try{
+     o.audio.currentTime=0;
+    }catch(e){}
+   }
+  });
+ }
+
+ x.audio.volume=+master.value;
+ x.audio.currentTime=0;
+
+ try{
+  await x.audio.play();
+ }catch(e){
+  alert('Afspelen lukte niet.');
+ }
+
+ if(selected<items.length-1){
+  selected++;
+ }
+
+ render();
+};
+
+$('#pause').onclick=()=>{
+
+ let a=items.filter(x=>!x.audio.paused);
+
+ if(a.length){
+  a.forEach(x=>x.audio.pause());
+ }
+ else{
+  items
+  .filter(x=>
+   x.audio.currentTime>0 &&
+   x.audio.currentTime<x.audio.duration
+  )
+  .forEach(x=>x.audio.play());
+ }
+
+ render();
+};
+
+$('#stop').onclick=()=>{
+
+ items.forEach(x=>{
+  x.audio.pause();
+
+  try{
+   x.audio.currentTime=0;
+  }catch(e){}
+ });
+
+ render();
+};
+
+$('#cancel').onclick=()=>{
+ $('#dlg').close();
+};
+
+$('#apply').onclick=()=>{
+
+ if(editing>=0){
+  items[editing].name=
+   $('#ename').value.trim()||
+   items[editing].name;
+
+  items[editing].overlap=
+   $('#overlap').checked;
+ }
+
+ $('#dlg').close();
+ render();
+};
+
+$('#up').onclick=()=>{
+
+ if(editing>0){
+  [items[editing-1],items[editing]]=
+   [items[editing],items[editing-1]];
+
+  editing--;
+  render();
+ }
+};
+
+$('#down').onclick=()=>{
+
+ if(editing>=0&&editing<items.length-1){
+  [items[editing+1],items[editing]]=
+   [items[editing],items[editing+1]];
+
+  editing++;
+  render();
+ }
+};
+
+$('#save').onclick=async()=>{
+
+ try{
+  await clearDB();
+
+  for(let x of items){
+   await put({
+    name:x.name,
+    original:x.original,
+    blob:x.blob,
+    overlap:x.overlap,
+    duration:x.duration
+   });
+  }
+
+  toast('Set lokaal bewaard ✓');
+ }
+ catch(e){
+  alert(
+   'Opslaan lukte niet. Mogelijk is de browseropslag vol.'
+  );
+ }
+};
+
+$('#clear').onclick=async()=>{
+
+ if(confirm('Board én lokaal bewaarde set wissen?')){
+
+  items.forEach(x=>{
+   x.audio.pause();
+  });
+
+  items=[];
+  selected=-1;
+
+  await clearDB();
+
+  render();
+  toast('Board gewist');
+ }
+};
+
+(async()=>{
+
+ try{
+  let r=await all();
+
+  items=r.map(make);
+
+  sort();
+
+  if(items.length){
+   selected=0;
+
+   toast(
+    'Set hersteld: '+
+    items.length+
+    ' geluiden'
+   );
+  }
+
+  render();
+ }
+ catch(e){
+  render();
+ }
+
+})();
+</script>
+
+</body>
+</html>
