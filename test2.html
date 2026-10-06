@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111318">
+<title>Soundboard De Köpkes 2.0 TEST</title>
+
+<style>
+:root{
+  --bg:#111318;
+  --panel:#20242e;
+  --panel2:#292e3a;
+  --text:#f5f5f7;
+  --muted:#aeb3bf;
+  --gold:#f2d36f;
+  --red:#57242b;
+  --line:#3a404d;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+button,input{font:inherit}
+button{touch-action:manipulation}
+
+header{
+  padding:24px 18px 16px;
+  border-bottom:1px solid var(--line);
+}
+
+h1{margin:0;font-size:27px}
+.gold{color:var(--gold)}
+.sub{color:var(--muted);margin:6px 0 14px}
+
+.top{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.add{
+  grid-column:1/-1;
+  background:var(--gold);
+  color:#111;
+  border:0;
+  border-radius:16px;
+  min-height:64px;
+  font-weight:800;
+  font-size:19px;
+}
+
+.small{
+  background:var(--panel2);
+  color:var(--text);
+  border:1px solid #444b59;
+  border-radius:14px;
+  min-height:54px;
+  font-weight:700;
+}
+
+.controls{
+  padding:14px 18px;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:12px;
+  align-items:center;
+  border-bottom:1px solid var(--line);
+}
+
+.controls input{width:100%}
+
+main{padding:18px 18px 125px}
+
+.status{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:14px;
+  color:var(--muted);
+}
+
+.pads{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+.pad{
+  position:relative;
+  min-height:150px;
+  border-radius:18px;
+  border:2px solid transparent;
+  background:var(--panel);
+  color:var(--text);
+  padding:18px 14px;
+  text-align:left;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+}
+
+.pad.selected{
+  border-color:var(--gold);
+  box-shadow:0 0 0 2px #f2d36f22;
+}
+
+.pad.playing{border-color:#fff}
+
+.pad-title{
+  font-size:21px;
+  font-weight:800;
+  line-height:1.12;
+  word-break:break-word;
+}
+
+.pad-meta{
+  font-size:13px;
+  color:var(--muted);
+}
+
+.badge{
+  position:absolute;
+  right:10px;
+  top:10px;
+  background:#1119;
+  border:1px solid #ffffff22;
+  border-radius:999px;
+  padding:5px 8px;
+  font-size:11px;
+}
+
+.empty{
+  grid-column:1/-1;
+  padding:32px 20px;
+  text-align:center;
+  border:1px dashed #4b5260;
+  border-radius:18px;
+  color:var(--muted);
+}
+
+.dock{
+  position:fixed;
+  z-index:10;
+  left:0;
+  right:0;
+  bottom:0;
+  background:#171a21ef;
+  backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  display:grid;
+  grid-template-columns:1fr 1fr 1.35fr;
+  gap:10px;
+}
+
+.dock button{
+  min-height:64px;
+  border-radius:15px;
+  border:1px solid #454c59;
+  background:var(--panel2);
+  color:#fff;
+  font-weight:850;
+  font-size:17px;
+}
+
+.dock .go{
+  background:var(--gold);
+  color:#111;
+  border-color:var(--gold);
+  font-size:22px;
+}
+
+.dock .stop{
+  background:var(--red);
+  color:#ffbdc5;
+  border-color:#b95160;
+}
+
+@media(min-width:760px){
+  .pads{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .pad{min-height:180px}
+  .pad-title{font-size:24px}
+}
+
+@media(min-width:1100px){
+  .pads{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Soundboard <span class="gold">De Köpkes</span>
+    <small style="font-size:12px;color:var(--muted)">TEST 2.0</small>
+  </h1>
+
+  <p class="sub">Grote pads · lokaal · huidige soundboard blijft onaangeroerd</p>
+
+  <div class="top">
+    <button class="add" id="add">＋ Geluiden toevoegen</button>
+    <button class="small" id="save">Set opslaan</button>
+    <button class="small" id="clear">Testboard leegmaken</button>
+  </div>
+
+  <input id="files" type="file" multiple hidden>
+</header>
+
+<section class="controls">
+  <span>Master</span>
+  <input id="master" type="range" min="0" max="1" step=".01" value=".8">
+  <strong id="masterPct">80%</strong>
+</section>
+
+<main>
+  <div class="status">
+    <strong id="cue">Geen cue geselecteerd</strong>
+    <span id="count">0 pads</span>
+  </div>
+
+  <div class="pads" id="pads">
+    <div class="empty">
+      Tik op <b>＋ Geluiden toevoegen</b> om deze testversie te proberen.
+    </div>
+  </div>
+</main>
+
+<div class="dock">
+  <button id="pause">⏸ PAUZE</button>
+  <button class="stop" id="stop">■ STOP</button>
+  <button class="go" id="go">▶ GO</button>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+
+let items = [];
+let selected = -1;
+let current = null;
+
+const master = $('#master');
+const pads = $('#pads');
+
+function fmt(sec){
+  if(!isFinite(sec)) return '—';
+  sec = Math.max(0,Math.round(sec));
+  return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
+}
+
+function render(){
+  $('#count').textContent = items.length + ' pads';
+
+  $('#cue').textContent =
+    selected >= 0
+      ? 'Klaar: ' + items[selected].name
+      : 'Geen cue geselecteerd';
+
+  pads.innerHTML = '';
+
+  if(!items.length){
+    pads.innerHTML =
+      '<div class="empty">Tik op <b>＋ Geluiden toevoegen</b> om deze testversie te proberen.</div>';
+    return;
+  }
+
+  items.forEach((x,i)=>{
+    const b = document.createElement('button');
+
+    b.className =
+      'pad' +
+      (i===selected ? ' selected' : '') +
+      (current===x.audio && !x.audio.paused ? ' playing' : '');
+
+    b.innerHTML =
+      '<span class="badge">Effect</span>' +
+      '<span class="pad-title">'+x.name+'</span>' +
+      '<span class="pad-meta">'+
+      (i+1)+'. '+(x.duration ? fmt(x.duration) : 'laden…')+
+      ' · tik = selecteer</span>';
+
+    b.onclick = ()=>{
+      selected = i;
+      render();
+    };
+
+    pads.appendChild(b);
+  });
+}
+
+$('#add').onclick = ()=>$('#files').click();
+
+$('#files').onchange = e=>{
+  [...e.target.files].forEach(f=>{
+    const url = URL.createObjectURL(f);
+    const a = new Audio(url);
+
+    a.preload = 'metadata';
+    a.volume = +master.value;
+
+    const x = {
+      name:f.name.replace(/\.[^.]+$/,''),
+      audio:a,
+      duration:0
+    };
+
+    a.onloadedmetadata = ()=>{
+      x.duration = a.duration;
+      render();
+    };
+
+    a.onerror = ()=>{
+      alert('Safari kan dit bestand niet als audio afspelen: '+f.name);
+    };
+
+    a.onended = ()=>{
+      if(current===a) current=null;
+      render();
+    };
+
+    items.push(x);
+  });
+
+  if(selected<0 && items.length) selected=0;
+
+  render();
+  e.target.value='';
+};
+
+master.oninput = ()=>{
+  $('#masterPct').textContent =
+    Math.round(master.value*100)+'%';
+
+  items.forEach(x=>{
+    x.audio.volume=+master.value;
+  });
+};
+
+$('#go').onclick = ()=>{
+  if(selected<0 || !items[selected]) return;
+
+  if(current && current!==items[selected].audio){
+    current.pause();
+    current.currentTime=0;
+  }
+
+  current=items[selected].audio;
+  current.volume=+master.value;
+  current.play();
+  render();
+};
+
+$('#pause').onclick = ()=>{
+  if(!current) return;
+
+  if(current.paused){
+    current.play();
+  }else{
+    current.pause();
+  }
+
+  render();
+};
+
+$('#stop').onclick = ()=>{
+  items.forEach(x=>{
+    x.audio.pause();
+    try{x.audio.currentTime=0}catch(e){}
+  });
+
+  current=null;
+  render();
+};
+
+$('#clear').onclick = ()=>{
+  if(confirm('Alle pads uit deze TEST verwijderen?')){
+    items.forEach(x=>{
+      try{URL.revokeObjectURL(x.audio.src)}catch(e){}
+    });
+
+    items=[];
+    selected=-1;
+    current=null;
+    render();
+  }
+};
+
+$('#save').onclick = ()=>{
+  alert('TEST 2.0: set-opslag bouwen we door nadat de bediening bevalt.');
+};
+
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'){
+    e.preventDefault();
+    $('#go').click();
+  }
+
+  if(e.key==='Escape'){
+    $('#stop').click();
+  }
+
+  if(e.key==='ArrowRight' && items.length){
+    selected=Math.min(items.length-1,selected+1);
+    render();
+  }
+
+  if(e.key==='ArrowLeft' && items.length){
+    selected=Math.max(0,selected-1);
+    render();
+  }
+});
+
+render();
+</script>
+
+</body>
+</html>
