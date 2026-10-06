@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111318">
+<title>Soundboard De Köpkes 2.1 TEST</title>
+
+<style>
+:root{
+ --bg:#111318;--panel:#20242e;--panel2:#292e3a;
+ --text:#f5f5f7;--muted:#aeb3bf;--gold:#f2d36f;
+ --red:#57242b;--line:#3a404d;--green:#75d6a5
+}
+*{box-sizing:border-box}
+body{
+ margin:0;background:var(--bg);color:var(--text);
+ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif
+}
+button,input{font:inherit}
+button{touch-action:manipulation}
+
+header{
+ padding:20px 16px 14px;
+ border-bottom:1px solid var(--line)
+}
+h1{margin:0;font-size:25px}
+.gold{color:var(--gold)}
+.sub{color:var(--muted);margin:5px 0 12px;font-size:14px}
+
+.top{
+ display:grid;grid-template-columns:1fr 1fr;gap:9px
+}
+.add{
+ grid-column:1/-1;background:var(--gold);color:#111;border:0;
+ border-radius:15px;min-height:58px;font-weight:850;font-size:18px
+}
+.small{
+ background:var(--panel2);color:var(--text);
+ border:1px solid #444b59;border-radius:13px;
+ min-height:48px;font-weight:700
+}
+
+.master{
+ padding:11px 16px;
+ display:grid;grid-template-columns:auto 1fr auto;
+ gap:10px;align-items:center;
+ border-bottom:1px solid var(--line)
+}
+.master input{width:100%}
+
+main{padding:14px 14px 120px}
+
+.next{
+ background:#171a21;border:1px solid var(--line);
+ border-radius:14px;padding:11px 13px;margin-bottom:12px
+}
+.next-label{
+ color:var(--gold);font-size:11px;font-weight:900;
+ letter-spacing:1.2px
+}
+.next-name{
+ margin-top:3px;font-size:19px;font-weight:850;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+
+.pads{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:10px
+}
+
+.pad{
+ position:relative;min-height:124px;
+ border-radius:16px;border:2px solid transparent;
+ background:var(--panel);color:var(--text);
+ padding:14px 12px 11px;text-align:left;
+ display:flex;flex-direction:column;justify-content:space-between
+}
+.pad.selected{
+ border-color:var(--gold);
+ box-shadow:0 0 0 2px #f2d36f20
+}
+.pad.playing{
+ box-shadow:inset 0 0 0 2px var(--green)
+}
+.pad-title{
+ padding-right:32px;
+ font-size:18px;font-weight:850;line-height:1.12;
+ word-break:break-word
+}
+.pad-meta{
+ color:var(--muted);font-size:12px;margin-top:10px
+}
+.playingText{
+ color:var(--green);font-weight:900
+}
+.gear{
+ position:absolute;right:7px;top:7px;
+ width:35px;height:35px;border-radius:10px;
+ border:1px solid #464d5a;background:#171a21;color:#fff;
+ display:grid;place-items:center;font-size:17px;z-index:2
+}
+.empty{
+ grid-column:1/-1;padding:30px 18px;text-align:center;
+ border:1px dashed #4b5260;border-radius:17px;color:var(--muted)
+}
+
+.dock{
+ position:fixed;z-index:20;left:0;right:0;bottom:0;
+ background:#171a21f2;backdrop-filter:blur(12px);
+ border-top:1px solid var(--line);
+ padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+ display:grid;grid-template-columns:.8fr .8fr 1.4fr;gap:9px
+}
+.dock button{
+ min-height:62px;border-radius:14px;
+ border:1px solid #454c59;background:var(--panel2);
+ color:#fff;font-weight:850;font-size:16px
+}
+.dock .stop{
+ background:var(--red);color:#ffbdc5;border-color:#b95160
+}
+.dock .go{
+ background:var(--gold);color:#111;border-color:var(--gold);
+ font-size:22px
+}
+
+dialog{
+ width:min(92vw,460px);
+ border:1px solid #4a5160;border-radius:18px;
+ background:var(--panel);color:var(--text);
+ padding:20px
+}
+dialog::backdrop{background:#000a}
+dialog h2{margin:0 0 14px}
+dialog label{
+ display:block;color:var(--muted);
+ font-size:13px;margin:12px 0 5px
+}
+dialog input[type=text]{
+ width:100%;padding:12px;border-radius:10px;
+ border:1px solid #555d6c;background:#111318;color:#fff
+}
+.check{
+ display:flex;align-items:center;gap:10px;margin-top:15px
+}
+.check input{width:22px;height:22px}
+.dialogButtons{
+ display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px
+}
+.dialogButtons button{
+ min-height:48px;border:0;border-radius:11px;font-weight:800
+}
+.saveEdit{background:var(--gold);color:#111}
+.cancelEdit{background:#343a47;color:#fff}
+
+@media(min-width:760px){
+ .pads{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .pad{min-height:145px}
+ .pad-title{font-size:21px}
+}
+@media(min-width:1100px){
+ .pads{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+ <h1>Soundboard <span class="gold">De Köpkes</span>
+ <small style="font-size:12px;color:var(--muted)">TEST 2.1</small></h1>
+
+ <p class="sub">Grote knoppen · snelle cues · podiumtest</p>
+
+ <div class="top">
+  <button class="add" id="add">＋ Geluiden toevoegen</button>
+  <button class="small" id="save">Set opslaan</button>
+  <button class="small" id="clear">Testboard leegmaken</button>
+ </div>
+
+ <input id="files" type="file" multiple hidden>
+</header>
+
+<section class="master">
+ <span>Master</span>
+ <input id="master" type="range" min="0" max="1" step=".01" value=".8">
+ <strong id="masterPct">80%</strong>
+</section>
+
+<main>
+
+ <div class="next">
+  <div class="next-label">VOLGENDE CUE</div>
+  <div class="next-name" id="nextName">Nog geen geluid geselecteerd</div>
+ </div>
+
+ <div class="pads" id="pads">
+  <div class="empty">
+   Voeg een paar geluiden toe om TEST 2.1 te proberen.
+  </div>
+ </div>
+
+</main>
+
+<div class="dock">
+ <button id="pause">⏸ PAUZE</button>
+ <button class="stop" id="stop">■ STOP</button>
+ <button class="go" id="go">▶ GO</button>
+</div>
+
+<dialog id="settings">
+ <h2>⚙️ Pad instellen</h2>
+
+ <label>Naam op de knop</label>
+ <input id="editName" type="text">
+
+ <label class="check">
+  <input id="allowOverlap" type="checkbox">
+  <span>Mag tegelijk met ander geluid spelen</span>
+ </label>
+
+ <div class="dialogButtons">
+  <button class="cancelEdit" id="cancelEdit">Annuleren</button>
+  <button class="saveEdit" id="saveEdit">Opslaan</button>
+ </div>
+</dialog>
+
+<script>
+const $=s=>document.querySelector(s);
+
+let items=[];
+let selected=-1;
+let editing=-1;
+
+const master=$('#master');
+const pads=$('#pads');
+
+function cleanName(name){
+ let n=name.replace(/\.[^.]+$/,'');
+ n=n.replace(/^De Kopkes[-_ ]*/i,'');
+ n=n.replace(/\s+NL[-_ ]?[A-Z0-9]+$/i,'');
+ n=n.replace(/\s+[A-Z]{1,3}[-_]?[A-Z0-9]{7,}$/i,'');
+ n=n.replace(/[-_]+/g,' ');
+ n=n.replace(/\s+/g,' ').trim();
+ return n || name;
+}
+
+function fmt(sec){
+ if(!isFinite(sec)) return '—';
+ sec=Math.max(0,Math.round(sec));
+ return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
+}
+
+function playingItems(){
+ return items.filter(x=>!x.audio.paused && !x.audio.ended);
+}
+
+function render(){
+ $('#nextName').textContent=
+  selected>=0 && items[selected]
+   ? items[selected].name
+   : 'Geen volgende cue';
+
+ pads.innerHTML='';
+
+ if(!items.length){
+  pads.innerHTML=
+   '<div class="empty">Voeg een paar geluiden toe om TEST 2.1 te proberen.</div>';
+  return;
+ }
+
+ items.forEach((x,i)=>{
+  const wrap=document.createElement('div');
+  wrap.style.position='relative';
+
+  const b=document.createElement('button');
+
+  const isPlaying=!x.audio.paused && !x.audio.ended;
+
+  b.className=
+   'pad'+
+   (i===selected?' selected':'')+
+   (isPlaying?' playing':'');
+
+  b.style.width='100%';
+
+  b.innerHTML=
+   '<span class="pad-title">'+x.name+'</span>'+
+   '<span class="pad-meta">'+
+   (isPlaying
+    ? '<span class="playingText">● SPEELT</span>'
+    : (i===selected?'VOLGENDE':'GEREED'))+
+   ' · '+(x.duration?fmt(x.duration):'laden…')+
+   '</span>';
+
+  b.onclick=()=>{
+   selected=i;
+   render();
+  };
+
+  const gear=document.createElement('button');
+  gear.className='gear';
+  gear.textContent='⚙️';
+
+  gear.onclick=e=>{
+   e.stopPropagation();
+   openSettings(i);
+  };
+
+  wrap.appendChild(b);
+  wrap.appendChild(gear);
+  pads.appendChild(wrap);
+ });
+}
+
+function openSettings(i){
+ editing=i;
+ $('#editName').value=items[i].name;
+ $('#allowOverlap').checked=items[i].overlap;
+ $('#settings').showModal();
+}
+
+$('#cancelEdit').onclick=()=>{
+ $('#settings').close();
+};
+
+$('#saveEdit').onclick=()=>{
+ if(editing<0)return;
+
+ items[editing].name=
+  $('#editName').value.trim() || items[editing].name;
+
+ items[editing].overlap=
+  $('#allowOverlap').checked;
+
+ $('#settings').close();
+ render();
+};
+
+$('#add').onclick=()=>$('#files').click();
+
+$('#files').onchange=e=>{
+ [...e.target.files].forEach(f=>{
+
+  const url=URL.createObjectURL(f);
+  const a=new Audio(url);
+
+  a.preload='metadata';
+  a.volume=+master.value;
+
+  const x={
+   name:cleanName(f.name),
+   originalName:f.name,
+   audio:a,
+   duration:0,
+   overlap:false
+  };
+
+  a.onloadedmetadata=()=>{
+   x.duration=a.duration;
+   render();
+  };
+
+  a.onerror=()=>{
+   alert('Safari kan dit bestand niet als audio afspelen: '+f.name);
+  };
+
+  a.onplay=render;
+  a.onpause=render;
+  a.onended=render;
+
+  items.push(x);
+ });
+
+ if(selected<0 && items.length)selected=0;
+
+ render();
+ e.target.value='';
+};
+
+master.oninput=()=>{
+ $('#masterPct').textContent=
+  Math.round(master.value*100)+'%';
+
+ items.forEach(x=>{
+  x.audio.volume=+master.value;
+ });
+};
+
+$('#go').onclick=async()=>{
+ if(selected<0 || !items[selected])return;
+
+ const x=items[selected];
+
+ if(!x.overlap){
+  items.forEach(other=>{
+   if(other!==x && !other.audio.paused){
+    other.audio.pause();
+    try{other.audio.currentTime=0}catch(e){}
+   }
+  });
+ }
+
+ try{
+  x.audio.volume=+master.value;
+  x.audio.currentTime=0;
+  await x.audio.play();
+ }catch(e){
+  alert('Dit geluid kon niet gestart worden.');
+ }
+
+ if(selected<items.length-1){
+  selected++;
+ }
+
+ render();
+};
+
+$('#pause').onclick=()=>{
+ const playing=playingItems();
+
+ if(playing.length){
+  playing.forEach(x=>x.audio.pause());
+ }else{
+  const paused=items.filter(x=>
+   x.audio.currentTime>0 &&
+   x.audio.currentTime<x.audio.duration
+  );
+
+  paused.forEach(x=>{
+   x.audio.volume=+master.value;
+   x.audio.play();
+  });
+ }
+
+ render();
+};
+
+$('#stop').onclick=()=>{
+ items.forEach(x=>{
+  x.audio.pause();
+  try{x.audio.currentTime=0}catch(e){}
+ });
+
+ render();
+};
+
+$('#clear').onclick=()=>{
+ if(confirm('Alle pads uit TEST 2.1 verwijderen?')){
+  items.forEach(x=>{
+   x.audio.pause();
+   try{URL.revokeObjectURL(x.audio.src)}catch(e){}
+  });
+
+  items=[];
+  selected=-1;
+  render();
+ }
+};
+
+$('#save').onclick=()=>{
+ alert(
+  'TEST 2.1: zodra de bediening bevalt, bouwen we de echte set-opslag uit de huidige Köpkes Soundboard hierin.'
+ );
+};
+
+document.addEventListener('keydown',e=>{
+
+ if(e.code==='Space'){
+  e.preventDefault();
+  $('#go').click();
+ }
+
+ if(e.key==='Escape'){
+  $('#stop').click();
+ }
+
+ if(e.key==='ArrowRight' && items.length){
+  selected=Math.min(items.length-1,selected+1);
+  render();
+ }
+
+ if(e.key==='ArrowLeft' && items.length){
+  selected=Math.max(0,selected-1);
+  render();
+ }
+});
+
+render();
+</script>
+
+</body>
+</html>
